@@ -2,14 +2,20 @@
 #
 # Example input: [1, 2, 2, 3]
 # Example output: [1, 2, 3]
+# [1, 2, 2, 3, 2, 3, 3, 5, 0]
+
+
 def remove_adjacent(lst):
-    lst.sort()
     prev = lst[0]
-    for i in lst[1:]:
-        if i == prev:
-            lst.remove(i)
+    i = 1
+    length = len(lst)
+    while i != length:
+        if lst[i] == prev:
+            del lst[i]
+            length -= 1
         else:
-            prev = i
+            prev = lst[i]
+            i += 1
     print(lst)
     return
 
@@ -17,6 +23,8 @@ def remove_adjacent(lst):
 #
 # Example input: [2, 4, 6], [1, 3, 5]
 # Example output: [1, 2, 3, 4, 5, 6]
+
+
 def linear_merge(lst1, lst2):
     j = 0
     i = 0
@@ -42,12 +50,17 @@ def linear_merge(lst1, lst2):
             i += 1
     if i < len1:
         lst += lst1[i:]
+    elif j < len2:
+        lst += lst2[j:]
     print(lst)
     return
 
+
 def main():
-    lst1 = [2, 4, 6]
-    lst2 = [1, 3, 5, 5, 6, 7]
+    lst1 = [1, 2, 2, 3, 2, 3, 3, 3, 5, 0]
+    remove_adjacent(lst1)
+    lst1 = [2, 4, 6, 120]
+    lst2 = [1, 3, 5, 6, 7]
     linear_merge(lst1, lst2)
 
 if __name__ == "__main__":
