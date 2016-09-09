@@ -31,6 +31,7 @@ print_words() and print_top().
 
 import sys
 
+
 def read_words(filename):
     words = []
     with open(filename, "r") as f:
@@ -43,28 +44,27 @@ def get_words_dict(filename):
     words_count = {}
     for word in words:
         add_flag = 0
-        if word.islower != 1:
+        if not word.islower:
             word = word.lower()
-        for wordi in words_count:
-            if wordi == word:
-                words_count[wordi] += 1
-                add_flag = 1
-                break
-        if add_flag == 0:
+        if word in words_count:
+            words_count[word] += 1
+        else:
             words_count[word] = 1
-            add_flag = 1
     return words_count
 
 def print_words(filename):
     words_count = get_words_dict(filename)
     words_count = sorted(words_count.items())
     for word, num in words_count:
-        print(word + " " + str(num))
+        print(word, num)
 
 def print_top(filename):
     words_count = get_words_dict(filename)
     words_count = sorted(words_count.items(), key=lambda x: x[1], reverse=True)
-    for i in range(20):
+    length = len(words_count)
+    if length > 20:
+        length = 20
+    for i in range(length):
         print(words_count[i][0])
 
 

@@ -8,16 +8,14 @@
 def remove_adjacent(lst):
     prev = lst[0]
     i = 1
-    length = len(lst)
-    while i != length:
-        if lst[i] == prev:
-            del lst[i]
-            length -= 1
-        else:
-            prev = lst[i]
-            i += 1
-    print(lst)
-    return
+    lstres = []
+    if lst[0] != lst[1]:
+        lstres.append(lst[0])
+    for num in lst[1:]:
+        if prev != num:
+            lstres.append(num)
+            prev = num
+    return lstres
 
 # Merge two sorted lists in one sorted list in linear time
 #
@@ -31,16 +29,11 @@ def linear_merge(lst1, lst2):
     lst = []
     len1 = len(lst1)
     len2 = len(lst2)
-    if len2 > len1:
-        t = lst1
-        lst1 = lst2
-        lst2 = t
-        t = len1
-        len1 = len2
-        len2 = t
 
-    while i < len1:
+    while True:
         if j == len2:
+            break
+        if i == len1:
             break
         if lst1[i] >= lst2[j]:
             lst.append(lst2[j])
@@ -52,16 +45,17 @@ def linear_merge(lst1, lst2):
         lst += lst1[i:]
     elif j < len2:
         lst += lst2[j:]
-    print(lst)
-    return
+    return lst
 
 
 def main():
     lst1 = [1, 2, 2, 3, 2, 3, 3, 3, 5, 0]
-    remove_adjacent(lst1)
+    lst1 = remove_adjacent(lst1)
+    print(lst1)
     lst1 = [2, 4, 6, 120]
     lst2 = [1, 3, 5, 6, 7]
-    linear_merge(lst1, lst2)
+    lst = linear_merge(lst1, lst2)
+    print(lst)
 
 if __name__ == "__main__":
     main()

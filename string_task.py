@@ -13,7 +13,7 @@ def verbing(s):
     if len(s) < 3:
         return s
     if s[-3::] == "ing":
-        s = s[:-3] + "ly"
+        s += "ly"
     else:
         s += "ing"
     return s
@@ -54,19 +54,22 @@ def front_back(a, b):
     l2 = len(b)
 
     if l1 % 2 != 0:
-        l1 = l1 / 2 + 1
+        l1 = (l1 + 1) // 2
     else:
-        l1 /= 2
+        l1 //= 2
     if l2 % 2 != 0:
-        l2 = l2 / 2 + 1
+        l2 = (l2 + 1) // 2
     else:
-        l2 /= 2
+        l2 //= 2
 
     return a[:l1] + b[:l2] + a[l1:] + b[l2:]
 
 
 def main():
     s1, s2 = 'abcds', 'xyz'
+    s = 'reading'
+    s = verbing(s)
+    print(s)
     s = front_back(s1, s2)
     print(s)
 
