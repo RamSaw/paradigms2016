@@ -53,20 +53,14 @@ def front_back(a, b):
     l1 = len(a)
     l2 = len(b)
 
-    if l1 % 2 != 0:
-        l1 = (l1 + 1) // 2
-    else:
-        l1 //= 2
-    if l2 % 2 != 0:
-        l2 = (l2 + 1) // 2
-    else:
-        l2 //= 2
+    l1 = (l1 + 1) // 2
+    l2 = (l2 + 1) // 2
 
     return a[:l1] + b[:l2] + a[l1:] + b[l2:]
 
 
 def main():
-    s1, s2 = 'abcds', 'xyz'
+    s1, s2 = 'abcd', 'xy'
     s = 'reading'
     s = verbing(s)
     print(s)

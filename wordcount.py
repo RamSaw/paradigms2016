@@ -39,12 +39,12 @@ def read_words(filename):
             words.extend(line.split())
     return words
 
+
 def get_words_dict(filename):
     words = read_words(filename)
     words_count = {}
     for word in words:
-        add_flag = 0
-        if not word.islower:
+        if not word.islower():
             word = word.lower()
         if word in words_count:
             words_count[word] += 1
@@ -52,20 +52,19 @@ def get_words_dict(filename):
             words_count[word] = 1
     return words_count
 
+
 def print_words(filename):
     words_count = get_words_dict(filename)
     words_count = sorted(words_count.items())
     for word, num in words_count:
         print(word, num)
 
+
 def print_top(filename):
     words_count = get_words_dict(filename)
     words_count = sorted(words_count.items(), key=lambda x: x[1], reverse=True)
-    length = len(words_count)
-    if length > 20:
-        length = 20
-    for i in range(length):
-        print(words_count[i][0])
+    for i in words_count[:20]:
+        print(i[0])
 
 
 
