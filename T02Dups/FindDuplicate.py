@@ -15,31 +15,26 @@ def hash_file(path, blocksize=65536):
 
 def find_duplicates(top_dir):
     dups = {}
-    name_to_hash = {}
     for dirpath, _, filenames in os.walk(top_dir):
         filenames = filter(lambda x: not x.startswith(('.', '~')), filenames)
         for filename in filenames:
             path = os.path.join(dirpath, filename)
             if os.path.islink(path):
                 continue
-            if filename in name_to_hash:
-                dups[name_to_hash[filename]] += ':' + path
+            file_hash = hash_file(path)
+            if file_hash in dups:
+                dups[file_hash].append(path)
             else:
-                file_hash = hash_file(path)
-                name_to_hash[filename] = file_hash
-                if file_hash in dups:
-                    dups[file_hash] += ':' + path
-                else:
-                    dups[file_hash] = path
+                dups[file_hash] = [path]
     return dups
 
 
 def main():
     assert len(sys.argv) == 2
     dups = find_duplicates(os.path.abspath(sys.argv[1]))
-    for equals in dups.values():
-        if ':' in equals:
-            print(equals)
+    for equal_files in dups.values():
+        if len(equal_files) > 1:
+            print(*equal_files, sep=':')
 
 
 if __name__ == "__main__":
