@@ -1,31 +1,28 @@
 import os
 import sys
 import hashlib
+import collections
 
 
 def hash_file(path, blocksize=65536):
     with open(path, 'rb') as file:
-        hash_sha = hashlib.sha1()
+        hasher = hashlib.sha1()
         buff = file.read(blocksize)
         while len(buff) > 0:
-            hash_sha.update(buff)
+            hasher.update(buff)
             buff = file.read(blocksize)
-        return hash_sha.hexdigest()
+        return hasher.hexdigest()
 
 
 def find_duplicates(top_dir):
-    dups = {}
+    dups = collections.defaultdict(list)
     for dirpath, _, filenames in os.walk(top_dir):
         filenames = filter(lambda x: not x.startswith(('.', '~')), filenames)
         for filename in filenames:
             path = os.path.join(dirpath, filename)
             if os.path.islink(path):
                 continue
-            file_hash = hash_file(path)
-            if file_hash in dups:
-                dups[file_hash].append(path)
-            else:
-                dups[file_hash] = [path]
+            dups[hash_file(path)].append(path)
     return dups
 
 
