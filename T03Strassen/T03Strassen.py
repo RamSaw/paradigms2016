@@ -1,81 +1,87 @@
 import numpy as np
-import math
 
 
 def read_matrix(size):
-    matrix = np.array([list(map(int, input().split()))])
-    for i in range(size - 1):
+    matrix = np.empty((0, size), int)
+    for _ in range(size):
         row = list(map(int, input().split()))
-        matrix = np.append(matrix, [row], axis=0)
+        matrix = np.vstack((matrix, row))
     return matrix
 
 
-def get_corrected_matr(matr):
+def get_extended_matr(matr):
     size = len(matr)
-    correct_size = 2 ** int(math.ceil(math.log(size, 2)))
+    if 2 ** (size.bit_length() - 1) == size:
+        correct_size = size
+    else:
+        correct_size = 2 ** size.bit_length()
     correct_matr = np.zeros((correct_size, correct_size), dtype=int)
-    correct_matr[:size, :size] += matr[:size, :size]
+    correct_matr[:size, :size] = matr[:size, :size]
     return correct_matr
 
 
-def mul_matr_cube(matr1, matr2):
-    size = len(matr1)
-    res = np.zeros((size, size), dtype=int)
-    for i in range(size):
-        for j in range(size):
-            res[i][j] = sum(matr1[i][k] * matr2[k][j] for k in range(size))
-    return res
+def divide_matr_to_four(matr):
+    hsplited = np.hsplit(matr, 2)
+    return np.vsplit(hsplited[0], 2) + np.vsplit(hsplited[1], 2)
 
 
 def strassen_algorithm(matr1, matr2):
     size = len(matr1)
 
-    if size < 64:
-        return mul_matr_cube(matr1, matr2)
+    if size == 1:
+        return np.array(matr1[0][0] * matr2[0][0])
 
-    A11 = matr1[:size // 2, :size // 2]
-    A12 = matr1[:size // 2, size // 2:size]
-    A21 = matr1[size // 2:size, :size // 2]
-    A22 = matr1[size // 2:size, size // 2: size]
+    divided_matr1 = divide_matr_to_four(matr1)
+    a11 = divided_matr1[0]
+    a12 = divided_matr1[2]
+    a21 = divided_matr1[1]
+    a22 = divided_matr1[3]
 
-    B11 = matr2[:size // 2, :size // 2]
-    B12 = matr2[:size // 2, size // 2:size]
-    B21 = matr2[size // 2:size, :size // 2]
-    B22 = matr2[size // 2:size, size // 2: size]
+    divided_matr2 = divide_matr_to_four(matr2)
+    b11 = divided_matr2[0]
+    b12 = divided_matr2[2]
+    b21 = divided_matr2[1]
+    b22 = divided_matr2[3]
 
-    P1 = strassen_algorithm(A11 + A22, B11 + B22)
-    P2 = strassen_algorithm(A21 + A22, B11)
-    P3 = strassen_algorithm(A11, B12 - B22)
-    P4 = strassen_algorithm(A22, B21 - B11)
-    P5 = strassen_algorithm(A11 + A12, B22)
-    P6 = strassen_algorithm(A21 - A11, B11 + B12)
-    P7 = strassen_algorithm(A12 - A22, B21 + B22)
+    p1 = strassen_algorithm(a11 + a22, b11 + b22)
+    p2 = strassen_algorithm(a21 + a22, b11)
+    p3 = strassen_algorithm(a11, b12 - b22)
+    p4 = strassen_algorithm(a22, b21 - b11)
+    p5 = strassen_algorithm(a11 + a12, b22)
+    p6 = strassen_algorithm(a21 - a11, b11 + b12)
+    p7 = strassen_algorithm(a12 - a22, b21 + b22)
 
-    res_matr = np.zeros((size, size), dtype=int)
-    res_matr[:size // 2, :size // 2] = P1 + P4 - P5 + P7
-    res_matr[:size // 2, size // 2:size] = P3 + P5
-    res_matr[size // 2:size, :size // 2] = P2 + P4
-    res_matr[size // 2:size, size // 2: size] = P1 - P2 + P3 + P6
+    res = np.zeros((size, size), dtype=int)
+    res[:size // 2, :size // 2] = p1 + p4 - p5 + p7
+    res[:size // 2, size // 2:size] = p3 + p5
+    res[size // 2:size, :size // 2] = p2 + p4
+    res[size // 2:size, size // 2: size] = p1 - p2 + p3 + p6
 
-    return res_matr
+    # I suppose that it should look like this, but it throws an error
+    # #res = np.empty((size // 2, size // 2), int)
+    # #res = np.vstack((res, p1 + p4 - p5 + p7))
+    # #res = np.hstack((res, p3 + p5))
+    # #res = np.vstack((res, p2 + p4))
+    # #res = np.hstack((res, p1 - p2 + p3 + p6))
+
+    return res
 
 
 def mul_matr_strassen(matr1, matr2):
     original_size = len(matr1)
-    correct_matr1 = get_corrected_matr(matr1)
-    correct_matr2 = get_corrected_matr(matr2)
-    res_matr = strassen_algorithm(correct_matr1, correct_matr2)
-    return res_matr[:original_size, :original_size]
+    correct_matr1 = get_extended_matr(matr1)
+    correct_matr2 = get_extended_matr(matr2)
+    res = strassen_algorithm(correct_matr1, correct_matr2)
+    return res[:original_size, :original_size]
 
 
 def main():
     size = int(input())
     matr1 = read_matrix(size)
     matr2 = read_matrix(size)
-    res_matr = mul_matr_strassen(matr1, matr2)
-
-    for i in range(size):
-        print(' '.join(map(str, res_matr[i])))
+    result = mul_matr_strassen(matr1, matr2)
+    for row in result:
+        print(' '.join(map(str, row)))
 
 if __name__ == '__main__':
     main()
