@@ -26,7 +26,7 @@ def strassen(matr1, matr2):
     size = len(matr1)
 
     if size == 1:
-        return np.array(matr1[0][0] * matr2[0][0])
+        return np.array([[matr1[0][0] * matr2[0][0]]])
 
     a11, a12, a21, a22 = divide_matr_to_four(matr1)
     b11, b12, b21, b22 = divide_matr_to_four(matr2)
@@ -44,7 +44,8 @@ def strassen(matr1, matr2):
     c21 = p2 + p4
     c22 = p1 - p2 + p3 + p6
 
-    return np.vstack((np.hstack((c11, c12)), np.hstack((c21, c22))))
+    return np.vstack((np.hstack((c11, c12)),
+                      np.hstack((c21, c22))))
 
 
 def mul_matr_strassen(matr1, matr2):
@@ -59,10 +60,16 @@ def main():
     size = int(input())
     matr1 = read_matrix(size)
     matr2 = read_matrix(size)
-
     result = mul_matr_strassen(matr1, matr2)
     for row in result:
         print(' '.join(map(str, row)))
+    print(np.dot(matr1, matr2))
+    matr1 = np.array([[1, 2, 4], [2, 4, 5], [4, 5, 6]])
+    matr2 = np.array([[1, 5, 4], [5, 4, 5], [7, 5, 6]])
+    result = mul_matr_strassen(matr1, matr2)
+    for row in result:
+        print(' '.join(map(str, row)))
+    print(np.dot(matr1, matr2))
 
 if __name__ == '__main__':
     main()
