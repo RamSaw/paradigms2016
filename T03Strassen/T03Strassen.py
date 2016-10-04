@@ -63,13 +63,6 @@ def main():
     result = mul_matr_strassen(matr1, matr2)
     for row in result:
         print(' '.join(map(str, row)))
-    print(np.dot(matr1, matr2))
-    matr1 = np.array([[1, 2, 4], [2, 4, 5], [4, 5, 6]])
-    matr2 = np.array([[1, 5, 4], [5, 4, 5], [7, 5, 6]])
-    result = mul_matr_strassen(matr1, matr2)
-    for row in result:
-        print(' '.join(map(str, row)))
-    print(np.dot(matr1, matr2))
 
 if __name__ == '__main__':
     main()
