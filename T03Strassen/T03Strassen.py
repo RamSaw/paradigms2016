@@ -26,7 +26,7 @@ def strassen(matr1, matr2):
     size = len(matr1)
 
     if size == 1:
-        return np.array([[matr1[0][0] * matr2[0][0]]])
+        return matr1 * matr2
 
     a11, a12, a21, a22 = divide_matr_to_four(matr1)
     b11, b12, b21, b22 = divide_matr_to_four(matr2)
