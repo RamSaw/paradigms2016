@@ -1,18 +1,15 @@
-#!/usr/bin/env python3
-
-
 class Scope(object):
     def __init__(self, parent=None):
         self.parent = parent
-        self.dict = dict()
+        self.d = {}
 
     def __setitem__(self, key, value):
-        self.dict[key] = value
+        self.d[key] = value
 
     def __getitem__(self, item):
-        if item not in self.dict.keys():
+        if item not in self.d.keys():
             return self.parent[item]
-        return self.dict[item]
+        return self.d[item]
 
 
 class Number:
@@ -29,6 +26,8 @@ class Function:
         self.body = body
 
     def evaluate(self, scope):
+        if not self.body:
+            return Number(0)
         for command in self.body[:-1]:
             command.evaluate(scope)
         return self.body[-1].evaluate(scope)
@@ -51,18 +50,18 @@ class Conditional:
         self.if_false = if_false
 
     def evaluate(self, scope):
-        if not self.condition.evaluate(scope).value:
+        if self.condition.evaluate(scope).value:
+            if not self.if_true:
+                return self.condition.evaluate(scope)
+            for true_command in self.if_true[:-1]:
+                true_command.evaluate(scope)
+            return self.if_true[-1].evaluate(scope)
+        else:
             if not self.if_false:
-                return 0
+                return self.condition.evaluate(scope)
             for false_command in self.if_false[:-1]:
                 false_command.evaluate(scope)
             return self.if_false[-1].evaluate(scope)
-
-        if not self.if_true:
-            return 0
-        for true_command in self.if_true[:-1]:
-            true_command.evaluate(scope)
-        return self.if_true[-1].evaluate(scope)
 
 
 class Print:
@@ -91,12 +90,9 @@ class FunctionCall:
 
     def evaluate(self, scope):
         function = self.fun_expr.evaluate(scope)
-        evaluated_args = list()
-        for arg in self.args:
-            evaluated_args.append(arg.evaluate(scope))
         call_scope = Scope(scope)
-        for name_arg, evaluated_arg in zip(function.args, evaluated_args):
-            call_scope[name_arg] = evaluated_arg
+        for name_arg, arg in zip(function.args, self.args):
+            call_scope[name_arg] = arg.evaluate(scope)
         return function.evaluate(call_scope)
 
 
@@ -119,7 +115,8 @@ class BinaryOperation:
 
     def evaluate(self, scope):
         return Number(eval(str(self.lhs.evaluate(scope).value) + ' ' +
-                           self.op + ' ' + str(self.rhs.evaluate(scope).value)))
+                           self.op + ' ' +
+                           str(self.rhs.evaluate(scope).value)))
 
 
 class UnaryOperation:
@@ -150,6 +147,7 @@ def example():
 
 
 def my_tests():
+    # # Test scope class
     parent = Scope()
     parent['Num1'] = Number(10)
     assert 10 == parent["Num1"].value
@@ -161,39 +159,59 @@ def my_tests():
     scope['Num4'] = scope['Num2']
     assert scope['Num4'].value == parent["Num2"].value
 
+    # # Test function class
     function = Function(('hello', 'world'), [Number(10), Number(2)])
     function_definition = FunctionDefinition('NewFunc', function)
     function_definition.evaluate(scope)
     assert scope['NewFunc'] == function
 
-    condition = Conditional(Number(10), [Number(10), Number(12)], [Number(10), scope['NewFunc']])
+    # # Test condition class
+    condition = Conditional(Number(10), [Number(10), Number(12)],
+                            [Number(10), scope['NewFunc']])
     result = condition.evaluate(scope)
     assert result.value == 12
 
-    condition = Conditional(Number(0), [Number(10), Number(12)], [Number(10), scope['NewFunc']])
+    condition = Conditional(Number(0), [Number(10), Number(12)],
+                            [Number(10), scope['NewFunc']])
     result = condition.evaluate(scope)
     assert result.value == 2
 
+    # # Test print class
     print_obj = Print(Number(10))
     assert print_obj.evaluate(scope).value == 10
 
     print_obj = Print(function)
     assert print_obj.evaluate(scope).value == 2
 
+    # # Test read class
     read_obj = Read('ReadNum')
     assert read_obj.evaluate(scope).value == scope['ReadNum'].value
     assert read_obj.evaluate(scope).value == scope['ReadNum'].value
     print_obj = Print(scope['ReadNum'])
     print_obj.evaluate(scope)
 
+    # # Test FunctionCall class
     assert FunctionCall(FunctionDefinition('foo', function),
                         [Number(1), Number(2)]).evaluate(scope).value == 2
 
-    bin_opt = BinaryOperation(Number(1), '<=', Number(1))
-    assert bin_opt.evaluate(scope).value != 0
+    # # Test BinaryOperation class
+    bin_opt = BinaryOperation(Number(10), '&&', Number(2))
+    res = bin_opt.evaluate(scope).value
+    assert res != 0
 
-    un_opt = UnaryOperation('-', Number(-2))
-    assert un_opt.evaluate(scope).value == 2
+    # # Test UnaryOperation class
+    un_opt = UnaryOperation('!', Number(0))
+    res = un_opt.evaluate(scope).value
+    assert res == 1
+
+    # #Check empty condition and empty function
+    condition = Conditional(Number(2), [], [])
+    res = condition.evaluate(scope)
+    assert res.value == 2
+    function = Function([], [])
+    res = function.evaluate(scope)
+    assert res.value == 0
+    print()
 
 
 if __name__ == '__main__':
