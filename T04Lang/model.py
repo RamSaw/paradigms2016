@@ -108,26 +108,47 @@ class BinaryOperation:
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
         self.rhs = rhs
-        replaces = {'/': '//', '&&': 'and', '||': 'or'}
-        for replaced, replacing in replaces.items():
-            op = op.replace(replaced, replacing)
         self.op = op
 
     def evaluate(self, scope):
-        return Number(eval(str(self.lhs.evaluate(scope).value) + ' ' +
-                           self.op + ' ' +
-                           str(self.rhs.evaluate(scope).value)))
+        operations = {'/': lambda x, y: Number(x.evaluate(scope).value
+                                               // y.evaluate(scope).value),
+                      '*': lambda x, y: Number(x.evaluate(scope).value
+                                               * y.evaluate(scope).value),
+                      '+': lambda x, y: Number(x.evaluate(scope).value
+                                               + y.evaluate(scope).value),
+                      '-': lambda x, y: Number(x.evaluate(scope).value
+                                               - y.evaluate(scope).value),
+                      '%': lambda x, y: Number(x.evaluate(scope).value
+                                               % y.evaluate(scope).value),
+                      '==': lambda x, y: Number(int(x.evaluate(scope).value
+                                                == y.evaluate(scope).value)),
+                      '!=': lambda x, y: Number(int(x.evaluate(scope).value
+                                                != y.evaluate(scope).value)),
+                      '<': lambda x, y: Number(int(x.evaluate(scope).value
+                                                   < y.evaluate(scope).value)),
+                      '>': lambda x, y: Number(int(x.evaluate(scope).value
+                                                   > y.evaluate(scope).value)),
+                      '<=': lambda x, y: Number(int(x.evaluate(scope).value
+                                                <= y.evaluate(scope).value)),
+                      '>=': lambda x, y: Number(int(x.evaluate(scope).value
+                                                >= y.evaluate(scope).value)),
+                      '&&': lambda x, y: Number(x.evaluate(scope).value
+                                                and y.evaluate(scope).value),
+                      '||': lambda x, y: Number(x.evaluate(scope).value
+                                                or y.evaluate(scope).value)}
+        return (operations[self.op])(self.lhs, self.rhs)
 
 
 class UnaryOperation:
     def __init__(self, op, expr):
-        if op == '!':
-            op = 'not '
         self.op = op
         self.expr = expr
 
     def evaluate(self, scope):
-        return Number(eval(self.op + str(self.expr.evaluate(scope).value)))
+        operations = {'-': lambda x: Number(-x.evaluate(scope).value),
+                      '!': lambda x: Number(int(not x.evaluate(scope).value))}
+        return (operations[self.op])(self.expr)
 
 
 def example():
@@ -195,14 +216,14 @@ def my_tests():
                         [Number(1), Number(2)]).evaluate(scope).value == 2
 
     # # Test BinaryOperation class
-    bin_opt = BinaryOperation(Number(10), '&&', Number(2))
+    bin_opt = BinaryOperation(Number(10), '||', Number(2))
     res = bin_opt.evaluate(scope).value
     assert res != 0
 
     # # Test UnaryOperation class
-    un_opt = UnaryOperation('!', Number(0))
+    un_opt = UnaryOperation('!', Number(10))
     res = un_opt.evaluate(scope).value
-    assert res == 1
+    assert res == 0
 
     # #Check empty condition and empty function
     condition = Conditional(Number(2), [], [])
