@@ -79,7 +79,6 @@ class Read:
         self.name = name
 
     def evaluate(self, scope):
-        print("Input a number:")
         scope[self.name] = Number(int(input()))
         return scope[self.name]
 
@@ -106,40 +105,42 @@ class Reference:
 
 
 class BinaryOperation:
+    operations = {'/': lambda x, y: x // y,
+                  '*': lambda x, y: x * y,
+                  '+': lambda x, y: x + y,
+                  '-': lambda x, y: x - y,
+                  '%': lambda x, y: x % y,
+                  '==': lambda x, y: int(x == y),
+                  '!=': lambda x, y: int(x != y),
+                  '<': lambda x, y: int(x < y),
+                  '>': lambda x, y: int(x > y),
+                  '<=': lambda x, y: int(x <= y),
+                  '>=': lambda x, y: int(x >= y),
+                  '&&': lambda x, y: x and y,
+                  '||': lambda x, y: x or y}
+
     def __init__(self, lhs, op, rhs):
         self.lhs = lhs
         self.rhs = rhs
         self.op = op
-        self.operations = {'/': lambda x, y: x // y,
-                           '*': lambda x, y: x * y,
-                           '+': lambda x, y: x + y,
-                           '-': lambda x, y: x - y,
-                           '%': lambda x, y: x % y,
-                           '==': lambda x, y: int(x == y),
-                           '!=': lambda x, y: int(x != y),
-                           '<': lambda x, y: int(x < y),
-                           '>': lambda x, y: int(x > y),
-                           '<=': lambda x, y: int(x <= y),
-                           '>=': lambda x, y: int(x >= y),
-                           '&&': lambda x, y: x and y,
-                           '||': lambda x, y: x or y}
 
     def evaluate(self, scope):
-        return Number((self.operations[self.op])
+        return Number(self.operations[self.op]
                       (self.lhs.evaluate(scope).value,
                        self.rhs.evaluate(scope).value))
 
 
 class UnaryOperation:
+    operations = {'-': lambda x: -x,
+                  '!': lambda x: int(not x)}
+
     def __init__(self, op, expr):
         self.op = op
         self.expr = expr
-        self.operations = {'-': lambda x: -x,
-                           '!': lambda x: int(not x)}
 
     def evaluate(self, scope):
-        return Number((self.operations[self.op])
-                      (self.expr.evaluate(scope).value))
+        return Number(self.operations[self.op]
+                     (self.expr.evaluate(scope).value))
 
 
 def example():
@@ -222,7 +223,7 @@ def my_tests():
     res = un_opt.evaluate(scope).value
     assert res == 0
 
-    # #Check empty condition and empty function
+    # # Check empty condition and empty function
     condition = Conditional(Number(0), None, [])
     res = condition.evaluate(scope)
     assert res.value == 1
@@ -234,20 +235,34 @@ def my_tests():
     assert res.value == 0
     print()
 
-    # #Check Read class, needed to int
+    # # Check Read class, needed to int
     read_test = Read('Read')
     read_res = read_test.evaluate(scope)
     condition = Conditional(Number(10), [Number(2), read_res], None)
     res = condition.evaluate(scope)
     assert res.value == read_res.value
 
-    # #Test scope doesn't rewrite values in parent scope
+    # # Test scope doesn't rewrite values in parent scope
     first_scope = Scope()
     first_scope['num1'] = Number(1)
     first_scope['num2'] = Number(2)
     second_scope = Scope(first_scope)
     second_scope['num1'] = Number(3)
-    assert second_scope['num1'] != first_scope['num1']
+    assert second_scope['num1'].value != first_scope['num1'].value
+
+    # # Check that FunctionCall creates new scope
+    parent = Scope()
+    parent["hello"] = Number(10)
+    parent["world"] = Number(20)
+    parent["foo"] = Function(('hello', 'world'),
+                             [Print(BinaryOperation(Reference('hello'),
+                                                    '+',
+                                                    Reference('world')))])
+    print('It should print 2, not 30, because created new scope: ', end=' ')
+    FunctionCall(FunctionDefinition('foo', parent['foo']),
+                 [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
+    print("parent['hello'] + parent['world'] = ",
+          parent['hello'].value + parent['world'].value)
 
 if __name__ == '__main__':
     example()
