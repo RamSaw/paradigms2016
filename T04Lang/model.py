@@ -190,17 +190,22 @@ def my_tests():
     assert result.value == 2
 
     # # Test print class
+    print("It should print 10:")
     print_obj = Print(Number(10))
     assert print_obj.evaluate(scope).value == 10
 
     print_obj = Print(function)
+    print("It should print 2 from function:")
     assert print_obj.evaluate(scope).value == 2
 
     # # Test read class
     read_obj = Read('ReadNum')
+    print("Input a number: ")
     assert read_obj.evaluate(scope).value == scope['ReadNum'].value
+    print("Input a number: ")
     assert read_obj.evaluate(scope).value == scope['ReadNum'].value
     print_obj = Print(scope['ReadNum'])
+    print("It should print the last input number: ")
     print_obj.evaluate(scope)
 
     # # Test FunctionCall class
@@ -237,10 +242,11 @@ def my_tests():
 
     # # Check Read class, needed to int
     read_test = Read('Read')
+    print("Input a number, will fail if input is 0:")
     read_res = read_test.evaluate(scope)
-    condition = Conditional(Number(10), [Number(2), read_res], None)
+    condition = Conditional(read_res, [Number(2)], [Number(10)])
     res = condition.evaluate(scope)
-    assert res.value == read_res.value
+    assert res.value == 2
 
     # # Test scope doesn't rewrite values in parent scope
     first_scope = Scope()
@@ -258,7 +264,7 @@ def my_tests():
                              [Print(BinaryOperation(Reference('hello'),
                                                     '+',
                                                     Reference('world')))])
-    print('It should print 2, not 30, because created new scope: ', end=' ')
+    print('Test new scope. It should print 2, not 30, because created new scope: ', end=' ')
     FunctionCall(FunctionDefinition('foo', parent['foo']),
                  [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
     print("parent['hello'] + parent['world'] = ",
