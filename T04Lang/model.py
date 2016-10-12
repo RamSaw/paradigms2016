@@ -194,10 +194,6 @@ def my_tests():
     print_obj = Print(Number(10))
     assert print_obj.evaluate(scope).value == 10
 
-    print_obj = Print(function)
-    print("It should print 2 from function:")
-    assert print_obj.evaluate(scope).value == 2
-
     # # Test read class
     read_obj = Read('ReadNum')
     print("Input a number: ")
