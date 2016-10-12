@@ -140,7 +140,7 @@ class UnaryOperation:
 
     def evaluate(self, scope):
         return Number(self.operations[self.op]
-                     (self.expr.evaluate(scope).value))
+                      (self.expr.evaluate(scope).value))
 
 
 def example():
@@ -252,19 +252,20 @@ def my_tests():
     second_scope['num1'] = Number(3)
     assert second_scope['num1'].value != first_scope['num1'].value
 
-    # Check that FunctionCall creates new scope
+    # Check that FunctionCall creates new scope, if not: scope['hello'] + scope['world'] = 2
     parent = Scope()
-    parent["hello"] = Number(10)
-    parent["world"] = Number(20)
+    scope["hello"] = Number(10)
+    scope["world"] = Number(20)
     parent["foo"] = Function(('hello', 'world'),
                              [Print(BinaryOperation(Reference('hello'),
                                                     '+',
                                                     Reference('world')))])
-    print('Test new scope. It should print 2, not 30, because created new scope: ', end=' ')
+    print('Test new scope. It should print 2: ', end=' ')
     FunctionCall(FunctionDefinition('foo', parent['foo']),
                  [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
-    print("parent['hello'] + parent['world'] = ",
-          parent['hello'].value + parent['world'].value)
+    print("It should print 30, if new scope was created. scope['hello'] + scope['world'] = ",
+          scope['hello'].value + scope['world'].value)
+    assert scope['hello'].value + scope['world'].value == 30
 
 if __name__ == '__main__':
     example()
