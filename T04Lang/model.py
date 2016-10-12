@@ -160,7 +160,7 @@ def example():
 
 
 def my_tests():
-    # # Test scope class
+    # Test scope class
     parent = Scope()
     parent['Num1'] = Number(10)
     assert 10 == parent["Num1"].value
@@ -172,13 +172,13 @@ def my_tests():
     scope['Num4'] = scope['Num2']
     assert scope['Num4'].value == parent["Num2"].value
 
-    # # Test function class
+    # Test function class
     function = Function(('hello', 'world'), [Number(10), Number(2)])
     function_definition = FunctionDefinition('NewFunc', function)
     function_definition.evaluate(scope)
     assert scope['NewFunc'] == function
 
-    # # Test condition class
+    # Test condition class
     condition = Conditional(Number(10), [Number(10), Number(12)],
                             [Number(10), scope['NewFunc']])
     result = condition.evaluate(scope)
@@ -189,12 +189,12 @@ def my_tests():
     result = condition.evaluate(scope)
     assert result.value == 2
 
-    # # Test print class
+    # Test print class
     print("It should print 10:")
     print_obj = Print(Number(10))
     assert print_obj.evaluate(scope).value == 10
 
-    # # Test read class
+    # Test read class
     read_obj = Read('ReadNum')
     print("Input a number: ")
     assert read_obj.evaluate(scope).value == scope['ReadNum'].value
@@ -204,11 +204,11 @@ def my_tests():
     print("It should print the last input number: ")
     print_obj.evaluate(scope)
 
-    # # Test FunctionCall class
+    # Test FunctionCall class
     assert FunctionCall(FunctionDefinition('foo', function),
                         [Number(1), Number(2)]).evaluate(scope).value == 2
 
-    # # Test BinaryOperation class
+    # Test BinaryOperation class
     bin_opt = BinaryOperation(Number(10), '||', Number(2))
     res = bin_opt.evaluate(scope).value
     assert res != 0
@@ -219,12 +219,12 @@ def my_tests():
     res = bin_opt.evaluate(scope).value
     assert res == 5
 
-    # # Test UnaryOperation class
+    # Test UnaryOperation class
     un_opt = UnaryOperation('!', Number(10))
     res = un_opt.evaluate(scope).value
     assert res == 0
 
-    # # Check empty condition and empty function
+    # Check empty condition and empty function
     condition = Conditional(Number(0), None, [])
     res = condition.evaluate(scope)
     assert res.value == 1
@@ -236,7 +236,7 @@ def my_tests():
     assert res.value == 0
     print()
 
-    # # Check Read class, needed to int
+    # Check Read class, needed to int
     read_test = Read('Read')
     print("Input a number, will fail if input is 0:")
     read_res = read_test.evaluate(scope)
@@ -244,7 +244,7 @@ def my_tests():
     res = condition.evaluate(scope)
     assert res.value == 2
 
-    # # Test scope doesn't rewrite values in parent scope
+    # Test scope doesn't rewrite values in parent scope
     first_scope = Scope()
     first_scope['num1'] = Number(1)
     first_scope['num2'] = Number(2)
@@ -252,7 +252,7 @@ def my_tests():
     second_scope['num1'] = Number(3)
     assert second_scope['num1'].value != first_scope['num1'].value
 
-    # # Check that FunctionCall creates new scope
+    # Check that FunctionCall creates new scope
     parent = Scope()
     parent["hello"] = Number(10)
     parent["world"] = Number(20)
