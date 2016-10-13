@@ -176,18 +176,18 @@ def my_tests():
     function = Function(('hello', 'world'), [Number(10), Number(2)])
     function_definition = FunctionDefinition('NewFunc', function)
     function_definition.evaluate(scope)
-    assert scope['NewFunc'] == function
+    assert scope['NewFunc'] is function
 
     # Test condition class
     condition = Conditional(Number(10), [Number(10), Number(12)],
-                            [Number(10), scope['NewFunc']])
+                            [Number(10), Number(40)])
     result = condition.evaluate(scope)
     assert result.value == 12
 
     condition = Conditional(Number(0), [Number(10), Number(12)],
-                            [Number(10), scope['NewFunc']])
+                            [Number(10), Number(40)])
     result = condition.evaluate(scope)
-    assert result.value == 2
+    assert result.value == 40
 
     # Test print class
     print("It should print 10:")
@@ -252,7 +252,8 @@ def my_tests():
     second_scope['num1'] = Number(3)
     assert second_scope['num1'].value != first_scope['num1'].value
 
-    # Check that FunctionCall creates new scope, if not: scope['hello'] + scope['world'] = 2
+    # Check that FunctionCall creates new scope,
+    # if not: scope['hello'] + scope['world'] = 2
     parent = Scope()
     scope["hello"] = Number(10)
     scope["world"] = Number(20)
@@ -262,8 +263,10 @@ def my_tests():
                                                     Reference('world')))])
     print('Test new scope. It should print 2: ', end=' ')
     FunctionCall(FunctionDefinition('foo', parent['foo']),
-                 [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
-    print("It should print 30, if new scope was created. scope['hello'] + scope['world'] = ",
+                 [Number(5),
+                  UnaryOperation('-', Number(3))]).evaluate(scope)
+    print("It should print 30,"
+          "if new scope was created. scope['hello'] + scope['world'] = ",
           scope['hello'].value + scope['world'].value)
     assert scope['hello'].value + scope['world'].value == 30
 
