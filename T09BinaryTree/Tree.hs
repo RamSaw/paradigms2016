@@ -28,11 +28,7 @@ delete k (Node key value left right)
 deleteRoot :: Ord k => BinaryTree k v -> BinaryTree k v
 deleteRoot (Node key value left Nil) = left
 deleteRoot (Node key value Nil right) = right
-deleteRoot (Node key value left right) = Node (getKey right) (getValue right) (correctLeft (getLeft right) left) (getRight right)
-getKey (Node key value left right) = key
-getValue (Node key value left right) = value
-getRight (Node key value left right) = right
-getLeft (Node key value left right) = left
-correctLeft Nil set_left = set_left
-correctLeft (Node key value left right) set_left = Node key value (correctLeft left set_left) right
+deleteRoot (Node key value left (Node r_key r_value r_left r_right)) = Node r_key r_value (pasteToLeftistElement r_left left) r_right
 
+pasteToLeftistElement Nil set_left = set_left
+pasteToLeftistElement (Node key value left right) set_left = Node key value (pasteToLeftistElement left set_left) right
