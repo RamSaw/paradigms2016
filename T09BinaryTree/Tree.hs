@@ -23,12 +23,7 @@ delete _ Nil = Nil
 delete k (Node key value left right)
        | k > key = Node key value left (delete k right) 
        | k < key = Node key value (delete k left) right
-       | k == key = deleteRoot (Node key value left right)
-
-deleteRoot :: Ord k => BinaryTree k v -> BinaryTree k v
-deleteRoot (Node key value left Nil) = left
-deleteRoot (Node key value Nil right) = right
-deleteRoot (Node key value left right) = pasteToLeftistElement right left
+       | k == key = pasteToLeftistElement right left
 
 pasteToLeftistElement Nil set_left = set_left
 pasteToLeftistElement (Node key value left right) set_left = Node key value (pasteToLeftistElement left set_left) right
