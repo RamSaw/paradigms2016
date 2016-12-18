@@ -189,5 +189,6 @@ class TestFunctionCall:
                                  [BinaryOperation(Reference('hello'),
                                                   '+', Reference('world'))])
         res = FunctionCall(FunctionDefinition('foo', parent['foo']),
-                           [Number(5), UnaryOperation('-', Number(3))]).evaluate(scope)
+                           [Number(5),
+                            UnaryOperation('-', Number(3))]).evaluate(scope)
         assert get_value(res) == 2
