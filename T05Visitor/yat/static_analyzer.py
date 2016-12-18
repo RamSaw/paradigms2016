@@ -60,7 +60,7 @@ class PureCheckVisitor:
 
 class NoReturnValueCheckVisitor:
     def __init__(self):
-        self.result = []
+        pass
 
     def visit(self, tree):
         return tree.accept(self)
@@ -73,35 +73,34 @@ class NoReturnValueCheckVisitor:
         if not tree.body:
             return False
         func_result = func_result and self.visit(tree.body[-1])
-        # Needed or not visiting all elements of body?
-        # Needed only if function definition could be there but it is strange
+        for command in tree.body:
+            self.visit(command)
         return func_result
 
     def visit_function_definition(self, tree):
         if not self.visit(tree.function):
-            self.result.append(tree.name)
             print(tree.name)
         return True
 
     def visit_condition(self, tree):
-        func_result = True
+        result = True
         if not tree.if_true:
             return False
-        func_result = func_result and self.visit(tree.if_true[-1])
+        result = result and self.visit(tree.if_true[-1])
         for true_command in tree.if_true:
             self.visit(true_command)
         if not tree.if_false:
             return False
-        func_result = func_result and self.visit(tree.if_false[-1])
+        result = result and self.visit(tree.if_false[-1])
         for false_command in tree.if_false:
             self.visit(false_command)
-        return func_result
+        return result
 
     def visit_print(self, tree):
-        return True
+        return self.visit(tree.expr)
 
     def visit_read(self, tree):
-        return True
+        return False
 
     def visit_function_call(self, tree):
         func_result = self.visit(tree.fun_expr)
