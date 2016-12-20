@@ -72,7 +72,7 @@ class NoReturnValueCheckVisitor:
         func_result = True
         if not tree.body:
             return False
-        func_result = func_result and self.visit(tree.body[-1])
+        func_result = self.visit(tree.body[-1]) and func_result
         for command in tree.body:
             self.visit(command)
         return func_result
@@ -86,12 +86,12 @@ class NoReturnValueCheckVisitor:
         result = True
         if not tree.if_true:
             return False
-        result = result and self.visit(tree.if_true[-1])
+        result = self.visit(tree.if_true[-1]) and result
         for true_command in tree.if_true:
             self.visit(true_command)
         if not tree.if_false:
             return False
-        result = result and self.visit(tree.if_false[-1])
+        result = self.visit(tree.if_false[-1]) and result
         for false_command in tree.if_false:
             self.visit(false_command)
         return result
@@ -100,20 +100,22 @@ class NoReturnValueCheckVisitor:
         return self.visit(tree.expr)
 
     def visit_read(self, tree):
-        return False
+        return self.visit(tree.name)
 
     def visit_function_call(self, tree):
         func_result = self.visit(tree.fun_expr)
         if tree.args:
             for arg in tree.args:
-                func_result = func_result and self.visit(arg)
+                func_result = self.visit(arg) and func_result
         return func_result
 
     def visit_reference(self, tree):
         return True
 
     def visit_binary_operation(self, tree):
-        return self.visit(tree.lhs) and self.visit(tree.rhs)
+        res_rhs = self.visit(tree.rhs)
+        res_lhs = self.visit(tree.lhs)
+        return res_rhs and res_lhs
 
     def visit_unary_operation(self, tree):
         return self.visit(tree.expr)
