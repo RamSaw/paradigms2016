@@ -72,7 +72,7 @@ class NoReturnValueCheckVisitor:
         func_result = True
         if not tree.body:
             return False
-        func_result = self.visit(tree.body[-1]) and func_result
+        func_result = self.visit(tree.body[-1]) & func_result
         for command in tree.body:
             self.visit(command)
         return func_result
@@ -84,29 +84,30 @@ class NoReturnValueCheckVisitor:
 
     def visit_condition(self, tree):
         result = True
-        if not tree.if_true:
+        if tree.if_true:
+            result = self.visit(tree.if_true[-1]) & result
+            for true_command in tree.if_true:
+                self.visit(true_command)
+        if tree.if_false:
+            result = self.visit(tree.if_false[-1]) & result
+            for false_command in tree.if_false:
+                self.visit(false_command)
+        if not tree.if_true or not tree.if_false:
             return False
-        result = self.visit(tree.if_true[-1]) and result
-        for true_command in tree.if_true:
-            self.visit(true_command)
-        if not tree.if_false:
-            return False
-        result = self.visit(tree.if_false[-1]) and result
-        for false_command in tree.if_false:
-            self.visit(false_command)
         return result
 
     def visit_print(self, tree):
         return self.visit(tree.expr)
 
     def visit_read(self, tree):
-        return self.visit(tree.name)
+        self.visit(tree.name)
+        return True
 
     def visit_function_call(self, tree):
         func_result = self.visit(tree.fun_expr)
         if tree.args:
             for arg in tree.args:
-                func_result = self.visit(arg) and func_result
+                func_result = self.visit(arg) & func_result
         return func_result
 
     def visit_reference(self, tree):
@@ -115,7 +116,7 @@ class NoReturnValueCheckVisitor:
     def visit_binary_operation(self, tree):
         res_rhs = self.visit(tree.rhs)
         res_lhs = self.visit(tree.lhs)
-        return res_rhs and res_lhs
+        return res_rhs & res_lhs
 
     def visit_unary_operation(self, tree):
         return self.visit(tree.expr)
