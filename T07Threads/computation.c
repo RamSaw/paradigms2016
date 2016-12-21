@@ -8,7 +8,6 @@ void thpool_submit_computation(struct ThreadPool *pool, struct Computation *comp
     computation->on_complete = on_complete;
 
     pthread_mutex_init(&computation->guard, NULL);
-    pthread_mutex_init(&computation->guard_complete, NULL);
     pthread_cond_init(&computation->finished_cond, NULL);
     computation->finished = false;
 
@@ -20,11 +19,11 @@ void thpool_submit_computation(struct ThreadPool *pool, struct Computation *comp
 
 void thpool_complete_computation(struct Computation *computation)
 {
-    pthread_mutex_lock(&computation->guard_complete);
+    pthread_mutex_lock(&computation->guard);
     computation->on_complete(computation->on_complete_args);
-    pthread_mutex_unlock(&computation->guard_complete);
     computation->finished = true;
     pthread_cond_signal(&computation->finished_cond);
+    pthread_mutex_unlock(&computation->guard);
 }
 
 void thpool_wait_computation(struct Computation *computation)
@@ -36,9 +35,7 @@ void thpool_wait_computation(struct Computation *computation)
     pthread_mutex_unlock(&computation->guard);
     pthread_cond_destroy(&computation->finished_cond);
     pthread_mutex_destroy(&computation->guard);
-    pthread_mutex_destroy(&computation->guard_complete);
 
-    pthread_cond_destroy(&computation->task->finished_cond);
-    pthread_mutex_destroy(&computation->task->guard);
+    thpool_wait(computation->task);
     free(computation->task);
 }

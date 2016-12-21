@@ -8,14 +8,11 @@
 typedef void (*OnComputationComplete)(void*);
 
 struct Computation {
-    struct list_node node;
-
     void (*f)(void*);
     void *arg;
 
     struct Task *task;
     pthread_mutex_t guard;
-    pthread_mutex_t guard_complete;
     pthread_cond_t finished_cond;
     bool finished;
 
