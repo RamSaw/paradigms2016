@@ -100,7 +100,6 @@ class NoReturnValueCheckVisitor:
         return self.visit(tree.expr)
 
     def visit_read(self, tree):
-        self.visit(tree.name)
         return True
 
     def visit_function_call(self, tree):
