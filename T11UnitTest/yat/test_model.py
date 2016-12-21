@@ -22,7 +22,7 @@ class TestPrint:
     def test_evaluate(self, monkeypatch):
         monkeypatch.setattr(sys, "stdout", StringIO())
         Print(Number(13)).evaluate({})
-        assert int(sys.stdout.getvalue()) == 13
+        assert sys.stdout.getvalue() == "13\n"
 
 
 class TestScope:
@@ -37,7 +37,8 @@ class TestScope:
         parent['Num2'] = Number(4)
         scope = Scope(parent)
         scope['Num4'] = scope['Num2']
-        assert get_value(scope['Num4']) == get_value(parent["Num2"])
+        assert get_value(parent["Num2"]) == 4
+        assert get_value(scope['Num4']) == 4
 
     def test_inheritance(self):
         num1 = Number(666)
@@ -51,12 +52,14 @@ class TestScope:
         assert get_value(parent['num1']) == 666
         assert get_value(scope['num2']) == 10
 
+    def test_inheritance_equality_of_variables(self):
         first_scope = Scope()
         first_scope['num1'] = Number(1)
         first_scope['num2'] = Number(2)
         second_scope = Scope(first_scope)
         second_scope['num1'] = Number(3)
-        assert get_value(second_scope['num1']) != get_value(first_scope['num1'])
+        assert get_value(second_scope['num1']) == 3
+        assert get_value(first_scope['num1']) == 1
 
 
 class TestFunction:
@@ -92,12 +95,13 @@ class TestConditional:
         test_conditional = Conditional(Number(0), [], [])
         test_conditional.evaluate({})
 
-    def test_evaluate(self):
+    def test_evaluate_true(self):
         condition = Conditional(Number(10), [Number(10), Number(12)],
                                 [Number(10), Number(40)])
         result = condition.evaluate({})
         assert get_value(result) == 12
 
+    def test_evaluate_false(self):
         condition = Conditional(Number(0), [Number(10), Number(12)],
                                 [Number(10), Number(40)])
         result = condition.evaluate({})
@@ -120,80 +124,83 @@ class TestReference:
 
 
 class TestBinaryOpertation:
-    def test_evaluate(self):
+    def test_evaluate_or(self):
+        bin_opt = BinaryOperation(Number(10), '||', Number(2))
+        res = get_value(bin_opt.evaluate({}))
+        assert res
+
+    def test_evaluate_equal(self):
         scope = Scope()
 
-        bin_opt = BinaryOperation(Number(10), '||', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
-        assert res
-
         bin_opt = BinaryOperation(Number(10), '==', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert not res
 
+    def test_evaluate_dividing(self):
         bin_opt = BinaryOperation(Number(10), '/', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res == 5
 
+    def test_evaluate_multiplication(self):
         bin_opt = BinaryOperation(Number(10), '*', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res == 20
 
+    def test_evaluate_sum(self):
         bin_opt = BinaryOperation(Number(10), '+', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res == 12
 
-        bin_opt = BinaryOperation(Number(10), '%', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
-        assert res == 0
-
+    def test_evaluate_mod(self):
         bin_opt = BinaryOperation(Number(10), '%', Number(3))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res == 1
 
-        bin_opt = BinaryOperation(Number(10), '==', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
-        assert not res
-
+    def test_evaluate_not_equal(self):
         bin_opt = BinaryOperation(Number(10), '!=', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res
 
+    def test_evaluate_more(self):
         bin_opt = BinaryOperation(Number(10), '>', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res
 
+    def test_evaluate_less(self):
         bin_opt = BinaryOperation(Number(10), '<', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert not res
 
+    def test_evaluate_not_more(self):
         bin_opt = BinaryOperation(Number(10), '<=', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert not res
 
+    def test_evaluate_not_less(self):
         bin_opt = BinaryOperation(Number(10), '>=', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res
 
+    def test_evaluate_and(self):
         bin_opt = BinaryOperation(Number(10), '&&', Number(2))
-        res = get_value(bin_opt.evaluate(scope))
+        res = get_value(bin_opt.evaluate({}))
         assert res
 
 
 class TestUnaryOperation:
-    def test_evaluate(self):
-        scope = Scope()
-
+    def test_evaluate_invert_number(self):
         un_opt = UnaryOperation('-', Number(2))
-        res = get_value(un_opt.evaluate(scope))
+        res = get_value(un_opt.evaluate({}))
         assert res == -2
 
+    def test_evaluate_not_true(self):
         un_opt = UnaryOperation('!', Number(2))
-        res = get_value(un_opt.evaluate(scope))
+        res = get_value(un_opt.evaluate({}))
         assert not res
 
+    def test_evaluate_not_false(self):
         un_opt = UnaryOperation('!', Number(0))
-        res = get_value(un_opt.evaluate(scope))
+        res = get_value(un_opt.evaluate({}))
         assert res
 
 
@@ -227,4 +234,5 @@ class TestFunctionCall:
         FunctionCall(FunctionDefinition('foo', parent['foo']),
                      [Number(5),
                       UnaryOperation('-', Number(3))]).evaluate(scope)
-        assert get_value(scope['hello']) + get_value(scope['world']) == 30
+        assert get_value(scope['hello']) == 10
+        assert get_value(scope['world']) == 20
