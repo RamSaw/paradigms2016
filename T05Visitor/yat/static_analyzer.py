@@ -69,13 +69,11 @@ class NoReturnValueCheckVisitor:
         return True
 
     def visit_function(self, tree):
-        func_result = True
         if not tree.body:
             return False
-        func_result = self.visit(tree.body[-1]) & func_result
         for command in tree.body:
             self.visit(command)
-        return func_result
+        return self.visit(tree.body[-1])
 
     def visit_function_definition(self, tree):
         if not self.visit(tree.function):
