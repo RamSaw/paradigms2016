@@ -11,7 +11,7 @@ struct Computation {
     void (*f)(void*);
     void *arg;
 
-    struct Task *task;
+    struct Task task;
     pthread_mutex_t guard;
     pthread_cond_t finished_cond;
     bool finished;
