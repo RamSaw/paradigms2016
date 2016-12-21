@@ -6,7 +6,7 @@ from model import *
 
 def get_value(number):
     sys.stdout = StringIO()
-    Print(number).evaluate(None)
+    Print(number).evaluate({})
     res = int(sys.stdout.getvalue())
     return res
 
@@ -14,13 +14,14 @@ def get_value(number):
 class TestNumber:
     def test_evaluate(self):
         number_test_obj = Number(666)
-        assert number_test_obj == number_test_obj.evaluate(None)
+        assert number_test_obj is number_test_obj.evaluate({})
+        assert get_value(number_test_obj) == 666
 
 
 class TestPrint:
-    def test_evaluate(self):
-        sys.stdout = StringIO()
-        Print(Number(13)).evaluate(None)
+    def test_evaluate(self, monkeypatch):
+        monkeypatch.setattr(sys, "stdout", StringIO())
+        Print(Number(13)).evaluate({})
         assert int(sys.stdout.getvalue()) == 13
 
 
@@ -30,6 +31,13 @@ class TestScope:
         scope['Num1'] = Number(666)
         res = get_value(scope['Num1'])
         assert 666 == res
+
+        parent = Scope()
+        parent['Num1'] = Number(10)
+        parent['Num2'] = Number(4)
+        scope = Scope(parent)
+        scope['Num4'] = scope['Num2']
+        assert get_value(scope['Num4']) == get_value(parent["Num2"])
 
     def test_inheritance(self):
         num1 = Number(666)
@@ -43,16 +51,22 @@ class TestScope:
         assert get_value(parent['num1']) == 666
         assert get_value(scope['num2']) == 10
 
+        first_scope = Scope()
+        first_scope['num1'] = Number(1)
+        first_scope['num2'] = Number(2)
+        second_scope = Scope(first_scope)
+        second_scope['num1'] = Number(3)
+        assert get_value(second_scope['num1']) != get_value(first_scope['num1'])
+
 
 class TestFunction:
     def test_evaluate_empty_body(self):
-        test_function = Function(None, None)
-        res = test_function.evaluate(None)
-        assert res
+        test_function = Function([], [])
+        test_function.evaluate({})
 
     def test_evaluate(self):
         function = Function(('hello', 'world'), [Number(10), Number(2)])
-        assert 2 == get_value(function.evaluate(None))
+        assert 2 == get_value(function.evaluate({}))
 
 
 class TestFunctionDefinition:
@@ -67,22 +81,26 @@ class TestFunctionDefinition:
 class TestConditional:
     def test_evaluate_empty_body(self):
         test_conditional = Conditional(Number(1), None, None)
-        res = test_conditional.evaluate(None)
-        assert res
+        test_conditional.evaluate({})
 
         test_conditional = Conditional(Number(0), None, None)
-        res = test_conditional.evaluate(None)
-        assert res
+        test_conditional.evaluate({})
+
+        test_conditional = Conditional(Number(1), [], [])
+        test_conditional.evaluate({})
+
+        test_conditional = Conditional(Number(0), [], [])
+        test_conditional.evaluate({})
 
     def test_evaluate(self):
         condition = Conditional(Number(10), [Number(10), Number(12)],
                                 [Number(10), Number(40)])
-        result = condition.evaluate(None)
+        result = condition.evaluate({})
         assert get_value(result) == 12
 
         condition = Conditional(Number(0), [Number(10), Number(12)],
                                 [Number(10), Number(40)])
-        result = condition.evaluate(None)
+        result = condition.evaluate({})
         assert get_value(result) == 40
 
 
@@ -107,11 +125,11 @@ class TestBinaryOpertation:
 
         bin_opt = BinaryOperation(Number(10), '||', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res != 0
+        assert res
 
         bin_opt = BinaryOperation(Number(10), '==', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 0
+        assert not res
 
         bin_opt = BinaryOperation(Number(10), '/', Number(2))
         res = get_value(bin_opt.evaluate(scope))
@@ -129,33 +147,37 @@ class TestBinaryOpertation:
         res = get_value(bin_opt.evaluate(scope))
         assert res == 0
 
+        bin_opt = BinaryOperation(Number(10), '%', Number(3))
+        res = get_value(bin_opt.evaluate(scope))
+        assert res == 1
+
         bin_opt = BinaryOperation(Number(10), '==', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 0
+        assert not res
 
         bin_opt = BinaryOperation(Number(10), '!=', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 1
+        assert res
 
         bin_opt = BinaryOperation(Number(10), '>', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 1
+        assert res
 
         bin_opt = BinaryOperation(Number(10), '<', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 0
+        assert not res
 
         bin_opt = BinaryOperation(Number(10), '<=', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 0
+        assert not res
 
         bin_opt = BinaryOperation(Number(10), '>=', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res == 1
+        assert res
 
         bin_opt = BinaryOperation(Number(10), '&&', Number(2))
         res = get_value(bin_opt.evaluate(scope))
-        assert res != 0
+        assert res
 
 
 class TestUnaryOperation:
@@ -168,11 +190,11 @@ class TestUnaryOperation:
 
         un_opt = UnaryOperation('!', Number(2))
         res = get_value(un_opt.evaluate(scope))
-        assert res == 0
+        assert not res
 
         un_opt = UnaryOperation('!', Number(0))
         res = get_value(un_opt.evaluate(scope))
-        assert res == 1
+        assert res
 
 
 class TestFunctionCall:
@@ -192,3 +214,17 @@ class TestFunctionCall:
                            [Number(5),
                             UnaryOperation('-', Number(3))]).evaluate(scope)
         assert get_value(res) == 2
+
+    def test_creating_new_scope(self):
+        scope = Scope()
+        parent = Scope()
+        scope["hello"] = Number(10)
+        scope["world"] = Number(20)
+        parent["foo"] = Function(('hello', 'world'),
+                                 [Print(BinaryOperation(Reference('hello'),
+                                                        '+',
+                                                        Reference('world')))])
+        FunctionCall(FunctionDefinition('foo', parent['foo']),
+                     [Number(5),
+                      UnaryOperation('-', Number(3))]).evaluate(scope)
+        assert get_value(scope['hello']) + get_value(scope['world']) == 30
