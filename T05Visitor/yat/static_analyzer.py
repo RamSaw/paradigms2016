@@ -81,7 +81,7 @@ class NoReturnValueCheckVisitor:
         return True
 
     def visit_condition(self, tree):
-        result = True
+        result = self.visit(tree.condition)
         if tree.if_true:
             result = self.visit(tree.if_true[-1]) & result
             for true_command in tree.if_true:
